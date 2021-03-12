@@ -23,6 +23,13 @@ namespace AzureFunctions.Autofac.Configuration
             containerAction?.Invoke(container);
             return container;
         }
+        
+        private static IContainer SetupContainerBuilder(ContainerBuilder builder, Action<IContainer> containerAction = null)
+        {
+            var container = builder.Build();
+            containerAction?.Invoke(container);
+            return container;
+        }
 
         public static void Initialize(Action<ContainerBuilder> cfg, string functionClassName, Action<IContainer> containerAction = null, bool enableCaching = true)
         {
@@ -36,6 +43,12 @@ namespace AzureFunctions.Autofac.Configuration
             {
                 nonCachedContainerBuilder.GetOrAdd(functionClassName, () => SetupContainerBuilder(cfg, containerAction));
             }
+        }
+        
+        public static void Initialize(ContainerBuilder builder, string functionClassName, Action<IContainer> containerAction = null)
+        {
+            _enableCaching[functionClassName] = false;
+            nonCachedContainerBuilder.GetOrAdd(functionClassName, () => SetupContainerBuilder(builder, containerAction));
         }
 
         public static object Resolve(Type type, string name, string functionClassName, Guid functionInstanceId)
